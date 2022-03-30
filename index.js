@@ -4,29 +4,6 @@ const morgan = require('morgan')
 const cors = require('cors')
 const Person = require('./models/Person')
 
-// let persons = [
-//   {
-//     id: 1,
-//     name: "Arto Hellas",
-//     number: "040-123456"
-//   },
-//   {
-//     id: 2,
-//     name: "Ada Lovelace",
-//     number: "39-44-5323523"
-//   },
-//   {
-//     id: 3,
-//     name: "Dan Abramov",
-//     number: "12-43-234345"
-//   },
-//   {
-//     id: 4,
-//     name: "Mary Poppendieck",
-//     number: "39-23-6423122"
-//   }
-// ]
-
 const app = express()
 
 app.use(cors())
@@ -43,7 +20,7 @@ app.get('/info', (request, response) => {
 
 app.get('/api/persons', (request, response) => {
   Person.find({})
-    .then(response => {
+    .then(persons => {
       response.json(persons)
     })
     .catch(error => {
@@ -52,13 +29,12 @@ app.get('/api/persons', (request, response) => {
 })
 
 app.get('/api/persons/:id', (request, response) => {
-  const id = Number(request.params.id)
-  Person.findById(id).
-    then(person => {
+  Person.findById(request.params.id)
+    .then(person => {
       response.json(person)
     })
     .catch(error => {
-      console.log('No person found with the id', id)
+      console.log('No person found with that id')
       response.status(404).end()
     })
 })
@@ -71,19 +47,12 @@ app.post('/api/persons', (request, response) => {
       error: 'content missing'
     })
   }
-  else if (persons.some(p => p.name === body.name)) {
-    return response.status(400).json({
-      error: 'name must be unique'
-    })
-  }
 
   const person = new Person({
-    id: generateId(1, 1000),
     name: body.name,
     number: body.number
   })
 
-  persons = persons.concat(person)
   person.save().then(savedPerson => {
     response.json(person)
   })
